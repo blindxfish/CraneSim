@@ -1,0 +1,24 @@
+{
+"boxes": [
+    {
+        "LI":55,
+        "message": "This is a sample box"
+    },
+    {
+        "LI":16,
+        "message": "This is a sample box"
+    },
+    {
+       "LI":450,
+        "message": "This is a sample box"
+    },
+    {
+       "LI":33,
+        "message": "This is a sample box"
+    },
+    {
+        "LI":100,
+        "message": "This is a sample box"
+    }
+]
+}

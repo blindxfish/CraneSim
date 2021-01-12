@@ -1,0 +1,52 @@
+#overlay {
+  visibility: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 2;
+  cursor: pointer;
+}
+#box-maker {
+  background-color: #f5d64efa; 
+  width: 400px;
+  height: 300px;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+.send-box{
+  display: inline;
+  width: 100px;
+  position: relative;
+  top: 90%;
+  align-self: center;
+  left:25%;
+}
+#input-fields{
+  padding: 5px;
+  margin: 10px;
+  border: 5px;
+  font: 1em;
+  position: inherit;
+  top: 30%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+.box-text{
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 1em;
+}
+.input{
+  border: 1px solid grey;
+  padding: 2px;
+  margin: 5px;
+}
