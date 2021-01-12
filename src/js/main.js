@@ -24,7 +24,6 @@ Last Update: 12/2/2020
 Todos: 
 
 Select the box - display the box info
-Build the in and outbound
 Ease the movement to the station
 Make a div for adding new boxes to the storage
 Make order array*(ok) and complete the orders one by one
@@ -58,7 +57,7 @@ let generateBoxmessage = document.getElementById("boxMessage")
 document.getElementById("send-box").addEventListener("click",()=>{makeInboundBox(generateBoxmessage.value,indexLocSent.value,-1); overlay.style.visibility = "hidden"})
 
 // Declare shared variables
-let pointer, canvas, crane, twister, box, craneAll, textBox, textSpeed, textTwisterY, textCraneX, textTwisterSpeed, rack, texttargetLocation, inboundJob=false, order, dot, inbound, outbound, inboundText, outboundTExt, addBoxButton
+let pointer,startDeliveryFlag = false, pickupFlag = false, canvas, crane, twister, box, craneAll, textBox, textSpeed, textTwisterY, textCraneX, textTwisterSpeed, rack, texttargetLocation, inboundJob=false, order, dot, inbound, outbound, inboundText, outboundTExt, addBoxButton, incommingSwitchButton, incommingSwitch = true;
 let orders = [] //Array used to store the orders
 let pickUpLocation = [] //Array used to store the pickup location x and y until the destination is not selected
 let destinationLocation = [] //Array used to store the destination x and y 
@@ -86,7 +85,6 @@ let makeInboundBox = function(message, destino, currentLocI){
 // Setup everything before playing
 function setup(){    
 // UNCOMMENT FOR DRIVE WITH ARROWS
-  
 //keypress
         let left = keyboard(37)
         left.press = ()=>{ crane.moveLeft = true}
@@ -197,11 +195,18 @@ boxes.boxes.forEach(el => {
     outbound.y = 300
     outbound.name = "outbound"
     outbound.index = -2
-// make buttons for add new boxes
+// make button for add new boxes
 
-    addBoxButton = rectangle(70,20,"grey","black",2,20,20)
+    addBoxButton = rectangle(120,20,"orange","black",2,20,20)
     addBoxButton.interactive = true
     addBoxButton.text = text("Create Box", "arial" , "black", addBoxButton.x, addBoxButton.centerY )
+
+// make button to turn off incomming boxes and use it in manual
+
+    incommingSwitchButton = rectangle(120,20,"lightgreen","black",2,20,80)
+    incommingSwitchButton.interactive = true
+    incommingSwitchButton.text = text("Turn OFF inbound", "arial" , "black", incommingSwitchButton.x, incommingSwitchButton.centerY )
+
 
 // make the relations
     rack.addChild(inbound)
@@ -250,12 +255,28 @@ boxes.boxes.forEach(el => {
     twister.addChild(dot)
     //start the game loop
     gameLoop()
-   console.log(rack)
+    console.log(rack)
 }
 function gameLoop(){
     requestAnimationFrame(gameLoop)
     play()
 }
+
+
+// If twister is not busy set timeout and generate a random order every 10-15 secounds - Incomming ON-OFF
+
+setInterval(()=>{ 
+
+    if(!twister.busy && incommingSwitch){
+        let randLoc = randomInt(0,539);
+        let randMes = "random message for "+randLoc;
+        console.log('create box');
+        makeInboundBox(randMes,randLoc,-1);
+    }
+
+}, 7000);
+
+
 // The logis of the program
 function play(){
     if(twister.children[1]){
@@ -274,6 +295,8 @@ function play(){
                     pickUpLocation.push(location.centerX,location.centerY,location.index)
                     console.log(pickUpLocation[2])
                   // THE INFOBOX   texttargetLocation.content = `X:${location.x},Y:${location.y}`
+                  
+                    incommingSwitch = false;
                     pointer.isDown = false
                 // If the pickuplocation is more than 0 we know that this is position for destination - add position as destination
                 }else if(pointer.isDown && pickUpLocation.length > 0 &&  location.children.length==0 && location.name == "rack"){
@@ -366,7 +389,8 @@ function play(){
         if(dist > 5){
           dx *= 5/dist;
           dy *= 5/dist;
-          console.log('...pickup...')
+          if(!pickupFlag){ console.log('...moving to pickup...'); pickupFlag = true;}
+          
         //If the twister arrived to the destination...
         }else if(dist<0.05){
             //get the location data from the order
@@ -387,12 +411,14 @@ function play(){
                     b.x = dot.x-b.width/2+3
                     b.y = dot.y-b.height/2+3
                     loc.occupied = false
+                    pickupFlag = false;
                 }
             //If there is no box 
             }else{
                 console.log('Error ! - Location is empty...\n Deleting order...')
                 destLoc.selected = false
                 orders.shift()
+                pickupFlag = false;
             }
         }
     }
@@ -412,7 +438,8 @@ function play(){
             if(dist > 5){
               dx *= 3/dist;
               dy *= 5/dist;
-              console.log('...start delivery...')
+                //report the start of delivery once
+                if(!startDeliveryFlag){ console.log('...start delivery...'); startDeliveryFlag = true;}
             }else if(dist<0.05){
                 let arrivedToDest = hit(dot,rack.children,false,false,true,
                     (collision,location)=>{
@@ -431,6 +458,7 @@ function play(){
                             orders.shift()
                             location.selected = false
                             console.log("box delivered")
+                            startDeliveryFlag = false;
                             inboundJob = false
                         }else{
                             //Reject the box if the position is ocupied
@@ -439,6 +467,7 @@ function play(){
                             order = newOrder(0,0,"Failed to deliver",-27,315,"outbound",0,-2)
                             orders = [order,...orders]
                             inboundJob = false
+                            startDeliveryFlag = false;
                         }
                     }
                 )
@@ -447,7 +476,7 @@ function play(){
             
         craneAll.x += dx;
         twister.y += dy;
-    }    
+    }  
 // Movement dinamics
     if(crane.moveRight){
         crane.speed += 0.03
@@ -477,7 +506,7 @@ function play(){
     // textCraneX.content = `Position X: ${craneAll.x.toFixed(4)}`
     // textTwisterSpeed.content = `Y Speed: ${twister.speed.toFixed(4)}`
 
-// Making and Adding new box
+// BUTTON DYNAMICS AND CONTROLL
 if(pointer.hitTestSprite(addBoxButton)){
     addBoxButton.fillStyle = "darkgrey"
     if(pointer.isDown){
@@ -487,6 +516,16 @@ if(pointer.hitTestSprite(addBoxButton)){
     }
 }else{
     addBoxButton.fillStyle = "grey"
+}
+
+if(pointer.hitTestSprite(incommingSwitchButton)){
+    incommingSwitch?incommingSwitchButton.fillStyle = "green":incommingSwitchButton.fillStyle = "orange";
+    if(pointer.isDown){
+        pointer.isDown=false;
+        incommingSwitch?incommingSwitch=false:incommingSwitch=true;
+    }
+}else{
+    incommingSwitch?incommingSwitchButton.fillStyle = "lightgreen":incommingSwitchButton.fillStyle = "red";
 }
 
 //render on the canvas
